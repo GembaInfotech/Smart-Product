@@ -127,9 +127,11 @@ const parkingList = async (req, res) => {
   // const lati = parseFloat(lat);
   // const lng = parseFloat(long);
   // console.log(lat);
-
+  console.log(req.query)
+  const reg="ell"
   try {
-    const parkings = await Parking.find();
+    const parkings = await Parking.find({pn: {$regex:  reg , $options: "i"}})
+    //db.topics.find(title: {$regex: "comp", $options: "i"})
     return res.json({ parkings: parkings });
   } catch (error) {
     console.error("Error fetching parking spots:", error);

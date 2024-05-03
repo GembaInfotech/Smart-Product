@@ -345,7 +345,10 @@ const login = async (req, res) => {
   try {
     const { mail, password } = req.body;
     console.log(req.body)
-    const user = await User.findOne({ mail });
+    const mds = mail.toLowerCase()
+   
+    console.log(mds)
+    const user = await User.findOne({ mail:mds });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
