@@ -5,11 +5,11 @@ const BusinessQueriesSchema = new Schema({
     type: String,
     required: true,
   },
-  email: {
+  mail: {
     type: String,
     required: true,
   },
-  mobile: {
+  mob: {
     type: String,
     required: true,
   },
