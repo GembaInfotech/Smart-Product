@@ -43,7 +43,7 @@ const fetchingOnQuery = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-const getBooking = async (req, res) => {
+const bookings = async (req, res) => {
   const {id} = req.user;
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -63,6 +63,29 @@ const getBooking = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const getBooking = async (req, res) => {
+  const {id} = req.query;
+  console.log(id)
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const booking = await Booking.findById(id).session(session);
+      console.log(booking)
+    if (!booking || booking.length === 0) 
+    {  await session.abortTransaction();
+      session.endSession();
+      return res.json({ data:[]});}
+    await session.commitTransaction();
+    session.endSession();
+    res.json({ data: booking });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 const cancelBooking = async (req, res) => {
   const { bookingId } = req.params;
   try {
@@ -262,5 +285,6 @@ export {
   cancelBooking,
   updationOfTime,
   getBooking,
-  createPaymentLink
+  createPaymentLink,
+  bookings
 };

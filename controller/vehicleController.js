@@ -1,109 +1,100 @@
 import asyncHandler from "express-async-handler";
+import { User } from "../models/user.js";
+const createVehicle = async (req, res) => {
+  const { id } = req.user;
 
-const addVehicle = asyncHandler(async (req, res) => {
+  const { name, num, type } = req.body;
+  console.log(req.body)
   try {
-    const { _id } = req.user;
+    // console.log(name, num, type, id )
+    const data = await User.findById(id);
+   
 
-    // Start a MongoDB session
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      // Create the vehicle document within the transaction
-      const vehicle = await Vehicle.create(req.body, { session });
-
-      // Update the vehicle document with the owner information within the transaction
-      const newVehicle = await Vehicle.findByIdAndUpdate(
-        vehicle?._id,
-        { owner: _id },
-        { new: true, session }
-      );
-
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      res.json({ data: newVehicle });
-    } catch (error) {
-      // Rollback the transaction if an error occurs
-      await session.abortTransaction();
-      session.endSession();
-
-      throw error;
+    if (!data) {
+      return res.status(404).json({ message: "End user not found" });
     }
+    console.log(req.body)
+   data.vehicle.push({
+      name,
+      num,
+      type,
+    });
+    await data.save();
+    console.log("here")
+    res.status(201).json({ message: "Vehicle added successfully", data:data });
   } catch (error) {
-    // Handle any errors that occur during the process
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
-});
-
-
-const updateVehicle = asyncHandler(async (req, res) => {
+};
+const vehicles = async (req, res) => {
+  const { id } = req.user;
+  // console.log(req.user)
   try {
-    const { id } = req.params;
-
-    // Start a MongoDB session
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      // Update the vehicle document within the transaction
-      const vehicle = await Vehicle.findOneAndUpdate({ _id: id }, req.body, {
-        new: true,
-        session,
-      });
-
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      res.json({ data: vehicle });
-    } catch (error) {
-      // Rollback the transaction if an error occurs
-      await session.abortTransaction();
-      session.endSession();
-
-      throw error;
+    const data = await User.findById(id);
+    if (!data) {
+      return res.status(404).json({ message: "End user not found" });
     }
+    const vehicles = data.vehicle;
+    res.status(200).json({ data:vehicles });
   } catch (error) {
-    // Handle any errors that occur during the process
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
-});
-
-
-const deleteVehicle = asyncHandler(async (req, res) => {
+};
+const deleteVehicle = async (req, res) => {
+  const { id } = req.user; 
+  const{ vid } =req.query;
   try {
-    const { id } = req.params;
-
-    // Start a MongoDB session
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      // Find and delete the vehicle document within the transaction
-      const vehicle = await Vehicle.findOneAndDelete({ _id: id }).session(session);
-
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      res.json({ data: vehicle });
-    } catch (error) {
-      // Rollback the transaction if an error occurs
-      await session.abortTransaction();
-      session.endSession();
-
-      throw error;
+    const data = await User.findByIdAndUpdate(
+      {_id: id }, 
+      { $pull: { vehicle: { _id: vid } } }, 
+      { new: true } 
+    );
+    if (!data) {
+      
+      return res.status(404).json({ message: "Vehicle not found" });
     }
+    return res.status(200).json({ message: "Vehicle deleted successfully" });
   } catch (error) {
-    // Handle any errors that occur during the process
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
-});
+};
+
+const defaultVehicle = async (req, res) => {
+  const {vehicleId} =req.query
+  const { def}=req.body;
+   try {
+     console.log(req.body  )
+     const { id } = req.user;
+     const user = await User.findById(id);
+     
+     if (!user) {
+       throw new Error('User not found');
+     }
+     
+     if (def) {
+       const hasDefaultVehicle = user.vehicle.some(vehicle => vehicle.def);
+       if (hasDefaultVehicle) {
+         // Clear the default status from the existing default vehicle
+         const existingDefaultVehicle = user.vehicle.find(vehicle => vehicle.def);
+         existingDefaultVehicle.def = false;
+       }
+     }
+     
+     const vehicle = user.vehicle.id(vehicleId);
+     if (!vehicle) {
+       throw new Error('Vehicle not found');
+     }
+     
+     vehicle.def = def;
+     
+     await user.save();
+     res.status(200).json({ message: "Vehicle status updated successfully" });
+   } catch (error) {
+     res.status(500).json({ error: "Internal Server Error" });
+   }
+ };
+
+
 
 
 const getVehicle = asyncHandler(async (req, res) => {
@@ -173,29 +164,14 @@ const getAllVehicle = asyncHandler(async (req, res) => {
 });
 
 
-const makePermanent = asyncHandler(async (req, res) => {
-  try {
-    const { id } = req.params;
-    const vehicle = await Vehicle.findByIdAndUpdate(
-      id,
-      {
-        permanent: true,
-      },
-      {
-        new: true,
-      }
-    );
-    res.json({ data: vehicle });
-  } catch (error) {
-    throw new Error(error);
-  }
-});
+
 
 export {
   getAllVehicle,
+  createVehicle,
   getVehicle,
-  updateVehicle,
-  addVehicle,
-  makePermanent,
+  
+  vehicles,
+ defaultVehicle,
   deleteVehicle,
 };

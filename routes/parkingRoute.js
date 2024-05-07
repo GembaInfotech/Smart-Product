@@ -7,14 +7,17 @@ import {
   deleteParking,
   parkingList,
   update
-} from "../controller/parkingController.js";
-import { authMiddleware, vendorAuth } from "../middlewares/authMiddleware.js";
+} 
+from "../controller/parkingController.js";
+import {  vendorAuth } from "../middlewares/authMiddleware.js";
 
-parkingRoute.get("/:lat/:long/:radius", parkingList);
-parkingRoute.get("/:parkingId", getAParking);
-parkingRoute.post("/register", vendorAuth,  register);
+//User 
+parkingRoute.get("/", parkingList);                     //parking based on search 
+parkingRoute.get("/:parkingId", getAParking);           // parking based on id 
+
+//Vendor
+parkingRoute.post("/register", vendorAuth,  register);  
 parkingRoute.put("/update/:id", update);
-
 parkingRoute.get("/:id", getParkingdetail);
 parkingRoute.delete("/:id", deleteParking);
 

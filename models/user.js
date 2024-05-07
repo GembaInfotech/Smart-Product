@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    uppercase:true,
   },
   mob: {
     type: Number,
@@ -21,15 +22,36 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  add: String,
-  city: String,
-  pc: Number,
-  lic:{
-    type :String,
+  add: {
+    type: String,
+    uppercase:true
   },
-  st: String,
-  country: String,
+  city: {
+    type: String,
+    uppercase: true,
+  },
+
+  pc: Number,
+  lic: {
+    type: String,
+    uppercase: true,
+  },
+  st: {
+    type: String,
+    uppercase: true,
+  },
+  country: {
+    type: String,
+    uppercase: true,
+  },
+  status:{
+      type:String,
+      enum:["Active", "Inactive"],
+      default:"Active"
+  },
+
   verificationToken: String,
+  
   verified:{
     type:Boolean,
     default:true
@@ -38,17 +60,21 @@ const userSchema = new mongoose.Schema({
     {
       name: {
         type: String,
+        uppercase:true
       },
        num: {
         type: String,
+        uppercase:true
       },
       type: {
         type: String,
         enum: ["four wheeler", "two wheeler"],
+        
       },
       def:{
         type:Boolean,
-        default:false
+        default:false,
+       
       }
     },
   ],

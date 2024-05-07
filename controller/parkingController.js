@@ -128,7 +128,9 @@ const parkingList = async (req, res) => {
   // const lng = parseFloat(long);
   // console.log(lat);
   console.log(req.query)
-  const reg="ell"
+
+  const {reg} = req.query; 
+  
   try {
     const parkings = await Parking.find({pn: {$regex:  reg , $options: "i"}})
     //db.topics.find(title: {$regex: "comp", $options: "i"})

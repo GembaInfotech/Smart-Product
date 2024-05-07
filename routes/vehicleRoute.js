@@ -1,20 +1,17 @@
 import express from "express";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 const vehicleRoute = express.Router();
 import {
-  getVehicle,
-  getAllVehicle,
   deleteVehicle,
-  updateVehicle,
-  makePermanent,
-  addVehicle,
-} from "../controller/vehicleController.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js";
+  defaultVehicle,
+  createVehicle,
+  vehicles
+}
+from "../controller/vehicleController.js";
 
-vehicleRoute.post("/", authMiddleware, addVehicle);
-vehicleRoute.get("/", authMiddleware, getAllVehicle);
-vehicleRoute.get("/:id", getVehicle);
-vehicleRoute.put("/:id", updateVehicle);
-vehicleRoute.delete("/:id", deleteVehicle);
-vehicleRoute.put("/mp/:id", authMiddleware, makePermanent);
+vehicleRoute.post("/",authMiddleware, createVehicle); //create vehicle
+vehicleRoute.get("/", authMiddleware, vehicles); //vehicle of a user 
+vehicleRoute.delete("/", authMiddleware,deleteVehicle); //delete a vehicle
+vehicleRoute.put("/default",authMiddleware, defaultVehicle); //make vehicle default
 
 export { vehicleRoute };

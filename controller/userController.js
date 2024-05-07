@@ -3,18 +3,18 @@ import nodemailer from "nodemailer";
 import { generateToken } from "../config/jwtTokens.js";
 import { generateRefreshToken } from "../config/refreshToken.js";
 import crypto from "crypto";
-import { request } from "http";
-import { log } from "console";
+
 
 import sendVerificationEmail from "../utils/nodemailer.js";
 import UserAVTemplate from "../Template/SignUp.js";
 
 
-const userData = async(req,res)=>{
+const user = async(req,res)=>{
   const {id} = req.user
+  console.log(req.get('host'), req.protocol)
   
   try {
-    console.log("34567");
+   
     const user = await User.findOne({ _id:id }); 
     console.log(user);
     res.json({"user":user})
@@ -50,7 +50,8 @@ const addvehicle = async (req, res) => {
 };
 
 const setDefaultVehicle = async (req, res) => {
- const {vehicleId, def}=req.body;
+  const {vehicleId} = req.query;
+ const { def}=req.body;
   try {
     console.log(req.body  )
     const { id } = req.user;
@@ -131,11 +132,11 @@ const getAllEndUsers = async (req, res) => {
   }
 };
 
-const createEndUser = async (req, res) => {
+const register = async (req, res) => {
   try {
     console.log("check............");
     console.log(req.body);
-    const { name, mail, password, mob } = req.body.values;
+    const { name, mail, password, mob } = req.body;
     console.log(name);
     const existedUser = await User.findOne({
         mail }
@@ -167,22 +168,32 @@ const createEndUser = async (req, res) => {
     res.status(401).json({error:error})  }
 };
 
-const updateEndUserEmail = async (req, res) => {
+const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { newEmail } = req.body;
+    const { id } = req.user;
+    console.log(req.body);
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const existingUserWithEmail = await User.findOne({ mail: newEmail });
-    if (existingUserWithEmail && existingUserWithEmail._id.toString() !== id) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-    user.mail = newEmail;
-    await user.save();
-    res.status(200).json({ message: "Email updated successfully", data:user });
-  } catch (error) {
+  
+    // const updated = await User.updateOne(
+    //   { _id: id }, 
+    //   { $set: { name: req.body.name } } 
+    // );
+    const updated = await User.findByIdAndUpdate(id, req.body, { new: true });
+
+  
+    // if (updated.nModified === 0) {
+    //   // If no documents were modified, it means the user was not found or the name was already updated to the same value
+    //   return res.status(404).json({ message: "User not found or name already updated" });
+    // }
+  
+    res.status(200).json({ message: "Updated successfully" });
+  } 
+  
+  
+  catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -375,7 +386,7 @@ const login = async (req, res) => {
     }
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000,
+      maxAge: 60 * 1000,
     });
 
     const data = {
@@ -391,16 +402,16 @@ const login = async (req, res) => {
 };
 
 export {
-  createEndUser,
+  register,
   login,
   getVehiclesById,
   addvehicle,
   deletevehicle,
   verify, 
-  updateEndUserEmail,
+  update,
   getAllEndUsers,
   verifyOTP,
   sendOtp,
   setDefaultVehicle,
-  userData
+  user
 };
